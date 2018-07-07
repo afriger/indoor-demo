@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">beacon-demo</string>
-    <string name="result">Location(x,y):</string>
-    <string name="button">Button</string>
-    <string name="location">Location</string>
-</resources>

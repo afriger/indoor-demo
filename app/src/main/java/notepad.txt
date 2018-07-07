@@ -1,0 +1,46 @@
+DEBUG HOT KEYS
+
+F8 Step over
+F7 Step into
+Shift + F7 Smart step into
+Shift + F8 Step out
+Alt + F9 Run to cursor
+Alt + F8 Evaluate expression
+
+
+F9 (Mac: Cmd + ALT + R) Resume program
+Ctrl + F8 (Mac: Cmd + F8) Toggle breakpoint
+Ctrl + Shift + F8 (Mac: Cmd + Shift + F8) View breakpoints
+///////////////////////////////////////////////////////////////////////
+EMF fieldprint.
+image. distribution.
+
+
+
+   /*
+        PETER-BEA1 : 44:EA:D8:27:39:55
+        PETER-BEA2 : 44:EA:D8:27:3D:6D
+        PETER-BEA4 : 44:EA:D8:27:2C:00
+        SASA-BEA2 : 00:15:83:00:42:68
+        SASA-BEA1 : 00:15:83:00:4B:C6
+    *//*   private final String f = "{" +
+            "PETER-BEA1:" + "{ x:0.0,y:0.0, z:1.0}," +
+            "PETER-BEA2:" + "{ x:2.0,y:0.0, z:1.0}," +
+            "PETER-BEA4:" + "{ x:4.0,y:0.0, z:1.0}," +
+            "SASA-BEA1:" + "{ x:0.0,y:4.0, z:1.0}," +
+            "SASA-BEA2:" + "{ x:4.0,y:4.0, z:1.0}," +
+            "}";*/
+
+
+
+            /*
+                    for (int i = 0; i < ab.size(); ++i)
+                    {
+                        PointEx t = ab.get(i);
+                        if (ac.contains(t) && bc.contains(t))
+                        {
+                            ret.add(t);
+                            return ret;
+                        }
+                    }
+            */
