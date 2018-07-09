@@ -1,8 +1,5 @@
 package com.afrig.utilities;
 import android.os.Environment;
-import android.util.Log;
-
-import com.afrig.beacon_demo.BeaconScene;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,8 +27,8 @@ public class DataFile
 
     public static void test()
     {
-        BeaconScene bs = BeaconScene.getBeaconScene();
-        AnchorPoint p = bs.getAnchorPointbyName("PETER-BEA4");
+       /* BeaconScene bs = BeaconScene.getBeaconScene();
+        AnchorPoint p = bs.getAnchorPointbyName("PETER-BEA4");*/
         return;
     }
 }//class

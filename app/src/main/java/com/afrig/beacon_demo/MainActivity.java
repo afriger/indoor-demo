@@ -8,6 +8,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Build;
@@ -16,6 +17,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.afrig.utilities.AnchorPoint;
 import com.afrig.utilities.DataFile;
 import com.afrig.utilities.KalmanFilter;
 import com.afrig.utilities.PointEx;
@@ -24,12 +26,12 @@ import com.afrig.plotter.PlotterPoint;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 public class MainActivity extends Activity
 {
-    private final String tag = "SASA";
+    private final String tag = "BeaconDemoActivity";
     private final String ttt = "TRACE";
-
     private BluetoothManager mBTManager;
     private BluetoothAdapter mBTAdapter;
     private Handler mScanHandler = new Handler();
@@ -37,18 +39,15 @@ public class MainActivity extends Activity
     private BluetoothLeScanner mBluetoothLeScanner;
     private final boolean mVersionKey = (Build.VERSION.SDK_INT < 21);
     private TextView m_res;
-    private final int mMaxLines = 55;
-    private int mLines = 0;
     //----------------------------------------------------------------
     private Handler mHandler = new Handler();
     private int SCAN_PERIOD = 5000;
     private ScanSettings mScanSettings;
     private List<ScanFilter> filters;
     KalmanFilter mKalman = new KalmanFilter(3.0, 3.0);
-    BeaconScene mFieldprint = new BeaconScene();
+    BeaconsScheme mBeaconsScheme = new BeaconsScheme();
     private Plotter mPlot;
-    private double mDeviceX = 4.0;
-    private double mDeviceY = 4.0;
+    private final boolean mProc = false;
 
     //----------------------------------------------------------------
     @Override
@@ -58,22 +57,25 @@ public class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         m_res = findViewById(R.id.textResult2);
         m_res.setText("");
-        mLines = 0;
         mPlot = findViewById(R.id.plotter_id);
         mPlot.SetPlotterSize(500, 500, 20);
+        if (mProc)
+        {
+            // init BLE
+            initBLE();
+        }
+    }
 
-  /*      // init BLE
+    private void initBLE()
+    {
         mBTManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBTAdapter = mBTManager.getAdapter();
         mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
-        mScanHandler.post(scanRunnable);*/
+        mScanHandler.post(scanRunnable);
     }
 
-    @Override
-    protected void onStart()
+    private void startBLE()
     {
-        super.onStart();
-/*
         if (Build.VERSION.SDK_INT >= 21)
         {
             mBluetoothLeScanner = mBTAdapter.getBluetoothLeScanner();
@@ -85,11 +87,42 @@ public class MainActivity extends Activity
                     .build();
             filters = new ArrayList<ScanFilter>();
         }
-*/
-//        ArrayList<PointF> list = lgorithms.test();
-        //       ArrayList<PointEx> list = Test.go();
-        //      toPlotter(list);
-        DataFile.test();
+    }
+
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+        if (mProc)
+        {
+            startBLE();
+        }
+        else
+        {
+            test();
+        }
+    }
+
+    private void test()
+    {
+        TreeSet<Integer> set = new TreeSet<>();
+        set.add(8);
+        set.add(2);
+        set.add(0);
+        set.add(6);
+        try
+        {
+            Integer[] arr = new Integer[5];
+            set.toArray(arr);
+            Integer p0 = arr[0];
+            Integer p1 = arr[1];
+            Integer p2 = arr[2];
+            Integer p3 = arr[3];
+        } catch (Exception e)
+        {
+            Log.e("TE-ST", e.getMessage());
+        }
+        //DataFile.test();
         toPlotter();
     }
 
@@ -97,11 +130,8 @@ public class MainActivity extends Activity
     {
         mPlot.reset();
         mPlot.invalidate();
-        BeaconScene beacons = BeaconScene.getBeaconScene1();
-        beacons.addToPlotter1(mPlot, Color.BLUE);
-        //PointF center = beacons.Center(mPlot,Color.RED);
-        //mPlot.addLine(center, beacons.get(3).getPoint());
-
+        AnchorPoint p = mBeaconsScheme.addToPlotter1(mPlot, Color.BLUE);
+        m_res.setText("(" + String.format("%.3f", p.x) + ";" + String.format("%.3f", p.y) + ")");
         mPlot.invalidate();
     }
 
@@ -130,7 +160,7 @@ public class MainActivity extends Activity
         public void onScanResult(int callbackType, ScanResult result)
         {
             super.onScanResult(callbackType, result);
-//Log.i(tag, "callbackType " + String.valueOf(callbackType));
+            //Log.i(tag, "callbackType " + String.valueOf(callbackType));
             BluetoothDevice device = result.getDevice();
             if (device != null)
             {
@@ -140,15 +170,9 @@ public class MainActivity extends Activity
                     BeaconDeviceAdaptation bdp = BeaconDeviceAdaptation.Make(result);
                     if (bdp != null && bdp.isBeacon())
                     {
-                        mFieldprint.add(bdp);
-                        if (mLines > mMaxLines)
-                        {
-                            m_res.setText("");
-                            mLines = 0;
-                        }
+                        mBeaconsScheme.add(bdp);
                         m_res.setTextColor(Color.BLACK);
                         //m_res.append(bdp.res() + '\n');
-                        mLines++;
                         int rssi = result.getRssi();
                         double kal = mKalman.applyFilter(rssi);
                         Log.e("AD-RESS", name + " : " + device.getAddress());
@@ -177,7 +201,7 @@ public class MainActivity extends Activity
 
     private void StartScan()
     {
-        mFieldprint.clear();
+        mBeaconsScheme.clear();
         if (mVersionKey)
         {
             mBTAdapter.startLeScan(leScanCallback20);
