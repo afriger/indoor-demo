@@ -9,7 +9,7 @@ public interface IBeacon extends Comparable<IBeacon>
 
     int getProximity();
 
-    int getRssi();
+    double getRssi();
 
     int getTxPower();
 

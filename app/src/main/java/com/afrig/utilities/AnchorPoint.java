@@ -9,7 +9,8 @@ public class AnchorPoint
     public final double y;
     public final double z;
     PointF point;
-    public double r=0;
+    public double r = 0;
+
 
     public AnchorPoint(double x, double y, double z)
     {
@@ -53,7 +54,7 @@ public class AnchorPoint
     public boolean isPointBelongsToThisCircle(final PointF point, double accuracy)
     {
         double d = Math.sqrt((x - point.x) * (x - point.x) + (y - point.y) * (y - point.y));
-        Log.e("TRACE-2", "d: " + d + "; r: " + r + "; " + (d <= (r+accuracy)));
+        Log.e("TRACE-2", "d: " + d + "; r: " + r + "; " + (d <= (r + accuracy)));
         return d <= (r + accuracy);
     }
 

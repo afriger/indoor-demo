@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Build;
@@ -18,7 +19,6 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.afrig.utilities.AnchorPoint;
-import com.afrig.utilities.DataFile;
 import com.afrig.utilities.KalmanFilter;
 import com.afrig.utilities.PointEx;
 import com.afrig.plotter.Plotter;
@@ -41,24 +41,26 @@ public class MainActivity extends Activity
     private TextView m_res;
     //----------------------------------------------------------------
     private Handler mHandler = new Handler();
-    private int SCAN_PERIOD = 5000;
+    private int SCAN_PERIOD = 1000;
     private ScanSettings mScanSettings;
     private List<ScanFilter> filters;
-    KalmanFilter mKalman = new KalmanFilter(3.0, 3.0);
-    BeaconsScheme mBeaconsScheme = new BeaconsScheme();
+    BeaconPool mBeaconPool = new BeaconPool();
+    BeaconsNearby mBeaconsNearby = new BeaconsNearby();
     private Plotter mPlot;
-    private final boolean mProc = false;
+    private final boolean mProc = true;
 
     //----------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // Make to run your application only in portrait mode
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); // Make to run your application only in LANDSCAPE mode
         setContentView(R.layout.activity_main);
         m_res = findViewById(R.id.textResult2);
         m_res.setText("");
         mPlot = findViewById(R.id.plotter_id);
-        mPlot.SetPlotterSize(500, 500, 20);
+        mPlot.SetPlotterSize(50, 50, 50);
         if (mProc)
         {
             // init BLE
@@ -82,8 +84,8 @@ public class MainActivity extends Activity
             mScanSettings = new ScanSettings.Builder()
                     //.setReportDelay(10)
                     //.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                    //.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                    .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    //.setScanMode(ScanSettings.SCAN_MODE_BALANCED)
                     .build();
             filters = new ArrayList<ScanFilter>();
         }
@@ -123,14 +125,14 @@ public class MainActivity extends Activity
             Log.e("TE-ST", e.getMessage());
         }
         //DataFile.test();
-        toPlotter();
+        toPlotter1();
     }
 
-    void toPlotter()
+    void toPlotter1()
     {
         mPlot.reset();
         mPlot.invalidate();
-        AnchorPoint p = mBeaconsScheme.addToPlotter1(mPlot, Color.BLUE);
+        AnchorPoint p = mBeaconsNearby.addToPlotter1(mPlot, Color.BLUE);
         m_res.setText("(" + String.format("%.3f", p.x) + ";" + String.format("%.3f", p.y) + ")");
         mPlot.invalidate();
     }
@@ -145,7 +147,7 @@ public class MainActivity extends Activity
                 String name = device.getName();
                 if (name != null)
                 {
-                    BeaconDeviceAdaptation bdp = BeaconDeviceAdaptation.Make(device, scanRecord, rssi);
+                    BeaconDeviceAdaptation bdp = BeaconDeviceAdaptation.Create(device, scanRecord, rssi);
                     if (bdp != null && bdp.isBeacon())
                     {
                         Log.i(tag + 20, bdp.toString());
@@ -167,16 +169,18 @@ public class MainActivity extends Activity
                 String name = device.getName();
                 if (name != null)
                 {
-                    BeaconDeviceAdaptation bdp = BeaconDeviceAdaptation.Make(result);
+                    BeaconDeviceAdaptation bdp = mBeaconPool.get(name, result);
                     if (bdp != null && bdp.isBeacon())
                     {
-                        mBeaconsScheme.add(bdp);
+                        mBeaconsNearby.add(bdp);
                         m_res.setTextColor(Color.BLACK);
-                        //m_res.append(bdp.res() + '\n');
+                        Log.e("TRA-CE", name + " : " + device.getAddress());
+/*
                         int rssi = result.getRssi();
                         double kal = mKalman.applyFilter(rssi);
                         Log.e("AD-RESS", name + " : " + device.getAddress());
                         Log.i("STAT-IC", "name: ;" + name + "; rssi: ;" + rssi + "; kal: ;" + kal);
+*/
                     }
                 }
             }
@@ -201,7 +205,8 @@ public class MainActivity extends Activity
 
     private void StartScan()
     {
-        mBeaconsScheme.clear();
+        Log.e("TRA-CE", "StartScan");
+        mBeaconsNearby.clear();
         if (mVersionKey)
         {
             mBTAdapter.startLeScan(leScanCallback20);
@@ -216,6 +221,7 @@ public class MainActivity extends Activity
 
     private void StopScan()
     {
+        Log.e("TRA-CE", "StopScan");
         if (mVersionKey)//
         {
             mBTAdapter.stopLeScan(leScanCallback20);
@@ -224,15 +230,9 @@ public class MainActivity extends Activity
         {
             mBluetoothLeScanner.stopScan(leScanCallback);
         }
-//        MathTool.Point loc = mFieldprint.getLocation(mDeviceX, mDeviceY);
         m_res.setTextColor(Color.RED);
-/*        m_res.setText(loc.toString());
-
-        if (loc.isValid())
-        {
-            toPlotter((float) loc.x, (float) loc.y);
-        }
-*/
+        BeaconsNearby.Scene scene = mBeaconsNearby.getBeaconScene();
+        toPlotter(scene);
     }
 
     private Runnable scanRunnable = new Runnable()
@@ -253,7 +253,22 @@ public class MainActivity extends Activity
         }
     };
 
-    private void toPlotter(ArrayList<PointEx> list)
+    private void toPlotter(BeaconsNearby.Scene scene)
+    {
+        if (scene != null)
+        {
+            mPlot.reset();
+            mPlot.invalidate();
+            m_res.setText(scene.Position());
+            mPlot.addAnchorPoint(scene.a, Color.BLUE);
+            mPlot.addAnchorPoint(scene.b, Color.BLUE);
+            mPlot.addAnchorPoint(scene.c, Color.BLUE);
+            mPlot.addAnchorPoint(scene.pos, Color.RED);
+            mPlot.invalidate();
+        }
+    }
+
+    private void toPlotter1(ArrayList<PointEx> list)
     {
         mPlot.reset();
         mPlot.invalidate();

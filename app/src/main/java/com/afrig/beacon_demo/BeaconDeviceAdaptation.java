@@ -11,7 +11,14 @@ import static com.afrig.utilities.Utils.BytesToHex;
 public class BeaconDeviceAdaptation implements IBeacon
 {
     static final String tag = "BeaconDeviceParameters";
-    private String mAddress;
+    private final String ttt = "TRA-CE";
+    public static enum Result
+    {
+        EXIST,
+        NEWOB,
+        ERROR
+    }
+    private String mAddress = null;
     private Boolean mIsBeacon = false;
     protected String mName = null;
     /**
@@ -28,7 +35,7 @@ public class BeaconDeviceAdaptation implements IBeacon
      */
     protected int mMinor = -1;
     protected int mTxPower = 0;
-    protected int mRssi;
+    protected double mRssi;
     private double mDistance = -1;
     private KalmanFilter mKalman = null;
 
@@ -62,7 +69,7 @@ public class BeaconDeviceAdaptation implements IBeacon
     }
 
     @Override
-    public int getRssi()
+    public double getRssi()
     {
         return mRssi;
     }
@@ -98,12 +105,67 @@ public class BeaconDeviceAdaptation implements IBeacon
         return mIsBeacon;
     }
 
-    public static BeaconDeviceAdaptation Make(final ScanResult result)
+    public Result Make(final ScanResult result)
     {
-        return BeaconDeviceAdaptation.Make(result.getDevice(), result.getScanRecord().getBytes(), result.getRssi());
+        return Make(result.getDevice(), result.getScanRecord().getBytes(), result.getRssi());
     }
 
-    public static BeaconDeviceAdaptation Make(final BluetoothDevice device, final byte[] scanRecord, int rssi)
+    public Result Make(final BluetoothDevice device, final byte[] scanRecord, int rssi)
+    {
+        if (device == null)
+        {
+            return Result.ERROR;
+        }
+        if (this.mAddress == device.getAddress())
+        {
+            mRssi = mKalman.applyFilter(rssi);
+            return Result.EXIST;
+        }
+        int startByte = 0;
+        boolean patternFound = false;
+        while (startByte <= 5)
+        {
+            if (((int) scanRecord[startByte] & 0xff) == 0x4c &&
+                    ((int) scanRecord[startByte + 1] & 0xff) == 0x00 &&
+                    ((int) scanRecord[startByte + 2] & 0xff) == 0x02 &&
+                    ((int) scanRecord[startByte + 3] & 0xff) == 0x15)
+            {
+                // yes!  This is an iBeacon
+                patternFound = true;
+                break;
+            }
+            else if (((int) scanRecord[startByte] & 0xff) == 0x2d &&
+                    ((int) scanRecord[startByte + 1] & 0xff) == 0x24 &&
+                    ((int) scanRecord[startByte + 2] & 0xff) == 0xbf &&
+                    ((int) scanRecord[startByte + 3] & 0xff) == 0x16)
+            {
+                return Result.ERROR;
+            }
+            startByte++;
+        }
+        if (patternFound == false)
+        {
+            // This is not an iBeacon
+            Log.d(tag, "This is not an iBeacon advertisment (no 4c000215 seen in bytes 2-5).  The bytes I see are: " + BytesToHex(scanRecord));
+            return Result.ERROR;
+        }
+        this.mIsBeacon = true;
+        this.mAddress = device.getAddress();
+        this.mName = device.getName();
+        this.mMajor = (scanRecord[startByte + 20] & 0xff) * 0x100 + (scanRecord[startByte + 21] & 0xff);
+        this.mMinor = (scanRecord[startByte + 22] & 0xff) * 0x100 + (scanRecord[startByte + 23] & 0xff);
+        this.mTxPower = (int) scanRecord[startByte + 24]; // this one is signed
+        this.mRssi = mKalman.applyFilter(rssi);
+        this.mProximityUuid = getProximityUuid(scanRecord, startByte);
+        return Result.NEWOB;
+    }
+
+    public static BeaconDeviceAdaptation Create(final ScanResult result)
+    {
+        return BeaconDeviceAdaptation.Create(result.getDevice(), result.getScanRecord().getBytes(), result.getRssi());
+    }
+
+    public static BeaconDeviceAdaptation Create(final BluetoothDevice device, final byte[] scanRecord, int rssi)
     {
         if (device == null)
         {
@@ -158,7 +220,13 @@ public class BeaconDeviceAdaptation implements IBeacon
         beacon.mTxPower = (int) scanRecord[startByte + 24]; // this one is signed
         beacon.mRssi = rssi;
         beacon.mAddress = device.getAddress();
-        beacon.calculateDistance();
+        beacon.mProximityUuid = getProximityUuid(scanRecord, startByte);
+        return beacon;
+    }
+
+    private static String getProximityUuid(byte[] scanRecord, int startByte)
+    {
+        // beacon.calculateDistance();
         // AirLocate:
         // 02 01 1a 1a ff 4c 00 02 15  # Apple's fixed iBeacon advertising prefix
         // e2 c5 6d b5 df fb 48 d2 b0 60 d0 f5 a7 10 96 e0 # iBeacon profile uuid
@@ -181,8 +249,7 @@ public class BeaconDeviceAdaptation implements IBeacon
         sb.append(hexString.substring(16, 20));
         sb.append("-");
         sb.append(hexString.substring(20, 32));
-        beacon.mProximityUuid = sb.toString();
-        return beacon;
+        return sb.toString();
     }
 
     public String toString()
@@ -231,6 +298,6 @@ public class BeaconDeviceAdaptation implements IBeacon
     @Override
     public int compareTo(/*@NonNull */IBeacon o)
     {
-        return (o.getRssi() - this.getRssi());
+        return (int) Math.round(o.getRssi() - this.getRssi());
     }
 }//class BeaconDeviceParameters

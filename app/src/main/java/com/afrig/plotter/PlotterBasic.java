@@ -20,7 +20,7 @@ import java.util.List;
 public class PlotterBasic extends View
 {
     private static final String tag = "Plotter";
-    public static final String ttt = "TRACE-1";
+    public static final String ttt = "TRA-CE";
     private final int DEFAULT_AXIS_WIDTH = 2;
     private final int DEFAULT_COORDINATE_TEXT_SIZE = 16;
     private final int DEFAULT_AXIS_COLOR = Color.BLACK;
@@ -52,6 +52,7 @@ public class PlotterBasic extends View
     private List<AnchorPoint> mCircles = new ArrayList<>();
     private List<Vector> mLines = new ArrayList<>();
     private final GestureDetector mGestureDetector;
+    private boolean mSavePoints = false;
 
     public PlotterBasic(Context context)
     {
@@ -91,6 +92,11 @@ public class PlotterBasic extends View
             this.a = new PointF(a.x, a.y);
             this.b = new PointF(b.x, b.y);
         }
+    }
+
+    public void savePoints(boolean b)
+    {
+        mSavePoints = b;
     }
 
     public void SetPlotterSize(int xMax, int yMax, float UnitLength)
@@ -208,15 +214,37 @@ public class PlotterBasic extends View
         {
             mLines.clear();
         }
-        if (mPoints != null)
+        if (null != mPoints)
         {
-            mPoints.clear();
+            if (mSavePoints)
+            {
+                List<PlotterPoint> lp = SaveRedPoint();
+                mPoints.clear();
+                mPoints.addAll(lp);
+            }
+            else
+            {
+                mPoints.clear();
+            }
         }
         if (mCircles != null)
         {
             mCircles.clear();
         }
         invalidate();
+    }
+
+    private List<PlotterPoint> SaveRedPoint()
+    {
+        List<PlotterPoint> lp = new ArrayList<>();
+        for (PlotterPoint pp : mPoints)
+        {
+            if (pp.getPointColor() == Color.RED)
+            {
+                lp.add(pp);
+            }
+        }
+        return lp;
     }
 
     private PointF convertLogicalPoint2Raw(PointF logical, float unitLength)
@@ -307,8 +335,4 @@ public class PlotterBasic extends View
             return true;
         }
     }
-
-    
-
-
 }//class Plotter

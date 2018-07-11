@@ -53,10 +53,6 @@ public class Trilateration implements ITrilateration
             return null;
         }
         List<PointEx> ac = circle_circle_intersection(a, c);
-        if (ac == null || ac.isEmpty())
-        {
-            return null;
-        }
         List<PointEx> bc = circle_circle_intersection(b, c);
         if (bc == null || bc.isEmpty())
         {
@@ -100,6 +96,10 @@ public class Trilateration implements ITrilateration
 
     private List<PointEx> circle_circle_intersection(AnchorPoint b, AnchorPoint c)
     {
+        if (b == null || c == null)
+        {
+            return null;
+        }
         List<PointEx> ret = new ArrayList<>();
         double x0 = b.x, y0 = b.y, r0 = b.r;
         double x1 = c.x, y1 = c.y, r1 = c.r;
