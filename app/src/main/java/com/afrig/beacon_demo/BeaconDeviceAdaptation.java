@@ -1,10 +1,16 @@
 package com.afrig.beacon_demo;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.util.Log;
 
 import com.afrig.interfaces.IBeacon;
+import com.afrig.utilities.DataFile;
 import com.afrig.utilities.KalmanFilter;
+import com.afrig.utilities.Utils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static com.afrig.utilities.Utils.BytesToHex;
 
@@ -155,73 +161,26 @@ public class BeaconDeviceAdaptation implements IBeacon
         this.mMajor = (scanRecord[startByte + 20] & 0xff) * 0x100 + (scanRecord[startByte + 21] & 0xff);
         this.mMinor = (scanRecord[startByte + 22] & 0xff) * 0x100 + (scanRecord[startByte + 23] & 0xff);
         this.mTxPower = (int) scanRecord[startByte + 24]; // this one is signed
+        //this.mTxPower = setTxpower(this.mAddress);
         this.mRssi = mKalman.applyFilter(rssi);
         this.mProximityUuid = getProximityUuid(scanRecord, startByte);
         return Result.NEWOB;
     }
 
-    public static BeaconDeviceAdaptation Create(final ScanResult result)
+    public int setTxpower(final String address)
     {
-        return BeaconDeviceAdaptation.Create(result.getDevice(), result.getScanRecord().getBytes(), result.getRssi());
-    }
-
-    public static BeaconDeviceAdaptation Create(final BluetoothDevice device, final byte[] scanRecord, int rssi)
-    {
-        if (device == null)
+        JSONObject obj = DataFile.getJSONObject("mac", address);
+        if (null != obj)
         {
-            return null;
-        }
-        int startByte = 0;
-        boolean patternFound = false;
-        while (startByte <= 5)
-        {
-            if (((int) scanRecord[startByte] & 0xff) == 0x4c &&
-                    ((int) scanRecord[startByte + 1] & 0xff) == 0x00 &&
-                    ((int) scanRecord[startByte + 2] & 0xff) == 0x02 &&
-                    ((int) scanRecord[startByte + 3] & 0xff) == 0x15)
+            try
             {
-                // yes!  This is an iBeacon
-                patternFound = true;
-                break;
-            }
-            else if (((int) scanRecord[startByte] & 0xff) == 0x2d &&
-                    ((int) scanRecord[startByte + 1] & 0xff) == 0x24 &&
-                    ((int) scanRecord[startByte + 2] & 0xff) == 0xbf &&
-                    ((int) scanRecord[startByte + 3] & 0xff) == 0x16)
+                return obj.getInt("tx");
+            } catch (JSONException e)
             {
-                return null;
+                Log.e(ttt, e.getMessage());
             }
-            startByte++;
         }
- /*       int startByte = 2;
-        boolean patternFound = false;
-        while (startByte <= 5)
-        {
-            if (((int) scanRecord[startByte + 2] & 0xff) == 0x02 && //Identifies an iBeacon
-                    ((int) scanRecord[startByte + 3] & 0xff) == 0x15)
-            { //Identifies correct data length
-                patternFound = true;
-                break;
-            }
-            startByte++;
-        }
-*/
-        if (patternFound == false)
-        {
-            // This is not an iBeacon
-            Log.d(tag, "This is not an iBeacon advertisment (no 4c000215 seen in bytes 2-5).  The bytes I see are: " + BytesToHex(scanRecord));
-            return null;
-        }
-        BeaconDeviceAdaptation beacon = new BeaconDeviceAdaptation();
-        beacon.mIsBeacon = true;
-        beacon.mName = device.getName();
-        beacon.mMajor = (scanRecord[startByte + 20] & 0xff) * 0x100 + (scanRecord[startByte + 21] & 0xff);
-        beacon.mMinor = (scanRecord[startByte + 22] & 0xff) * 0x100 + (scanRecord[startByte + 23] & 0xff);
-        beacon.mTxPower = (int) scanRecord[startByte + 24]; // this one is signed
-        beacon.mRssi = rssi;
-        beacon.mAddress = device.getAddress();
-        beacon.mProximityUuid = getProximityUuid(scanRecord, startByte);
-        return beacon;
+        return -59;
     }
 
     private static String getProximityUuid(byte[] scanRecord, int startByte)
@@ -275,6 +234,14 @@ public class BeaconDeviceAdaptation implements IBeacon
         return sb.toString();
     }
 
+    private final static double RSSI_TO_DISTANCE_A = 60;
+    private final static double RSSI_TO_DISTANCE_N = 3.3;
+
+    public static double rssiToDistance(double rssi)
+    {
+        return Math.pow(10, (Math.abs(rssi) - RSSI_TO_DISTANCE_A) / (10 * RSSI_TO_DISTANCE_N));
+    }
+
     public void calculateDistance()
     {
         Double rssi = mKalman.applyFilter(mRssi);
@@ -284,6 +251,9 @@ public class BeaconDeviceAdaptation implements IBeacon
             return;
         }
         mRssi = (int) Math.round(rssi);
+        mDistance = rssiToDistance(mRssi);
+
+/*
         double ratio = mRssi * 1.0 / mTxPower;
         if (ratio < 1.0)
         {
@@ -293,6 +263,8 @@ public class BeaconDeviceAdaptation implements IBeacon
         {
             mDistance = (0.89976) * Math.pow(ratio, 7.7095) + 0.111;
         }
+        Log.e(ttt, "distance-1: " +mDistance+ " : "+rssiToDistance(mRssi)+"rssi: " +rssi+"; Tx:"+mTxPower);
+*/
     }
 
     @Override

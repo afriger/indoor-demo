@@ -24,6 +24,8 @@ import com.afrig.utilities.KalmanFilter;
 import com.afrig.utilities.PointEx;
 import com.afrig.plotter.Plotter;
 import com.afrig.plotter.PlotterPoint;
+import com.afrig.utilities.StatisticCalculator;
+import com.afrig.utilities.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +52,7 @@ public class MainActivity extends Activity
     BeaconsNearby mBeaconsNearby = new BeaconsNearby();
     private Plotter mPlot;
     private final boolean mProc = true;
+    //----------------------------------------------------------------
 
     //----------------------------------------------------------------
     @Override
@@ -91,6 +94,7 @@ public class MainActivity extends Activity
                     .build();
             filters = new ArrayList<ScanFilter>();
         }
+        //StatisticCalculator.Reset("PETER-BEA4");
     }
 
     @Override
@@ -113,11 +117,13 @@ public class MainActivity extends Activity
                 String name = device.getName();
                 if (name != null)
                 {
-                    BeaconDeviceAdaptation bdp = BeaconDeviceAdaptation.Create(device, scanRecord, rssi);
+    /*                BeaconDeviceAdaptation bdp = BeaconDeviceAdaptation.Create(device, scanRecord, rssi);
                     if (bdp != null && bdp.isBeacon())
                     {
                         Log.i(tag + 20, bdp.toString());
-                    }
+                    }*/
+
+                    Log.i(tag , "leScanCallback20: no implementation");
                 }
             }
         }
@@ -135,6 +141,7 @@ public class MainActivity extends Activity
                 String name = device.getName();
                 if (name != null)
                 {
+                    //int nstat =  StatisticCalculator.Add(result.getRssi());
                     BeaconDeviceAdaptation bdp = mBeaconPool.get(name, result);
                     if (bdp != null && bdp.isBeacon())
                     {

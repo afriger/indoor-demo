@@ -57,6 +57,32 @@ public class DataFile
         return null;
     }
 
+    public static JSONObject getJSONObject(final String name, final String value)
+    {
+        Properties prop = getProperty();
+        if (prop == null)
+        {
+            return null;
+        }
+        int size = Integer.parseInt(prop.getProperty("size"));
+        try
+        {
+            for (int k = 0; k < size; ++k)
+            {
+                String sarr = prop.getProperty(prefix + k);
+                JSONObject obj = new JSONObject(sarr);
+                if (value.compareToIgnoreCase(obj.getString(name)) == 0)
+                {
+                    return obj;
+                }
+            }
+        } catch (JSONException i)
+        {
+            Log.e(tag, i.getMessage());
+        }
+        return null;
+    }
+
     public static AnchorPoint getAnchorPoint(final String name, final String value)
     {
         Properties prop = getProperty();
