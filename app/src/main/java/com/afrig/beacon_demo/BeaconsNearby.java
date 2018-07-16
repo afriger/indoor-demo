@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,18 +29,8 @@ public class BeaconsNearby extends TreeSet<BeaconDeviceAdaptation>
 
     public static class Scene
     {
-        public final AnchorPoint a;
-        public final AnchorPoint b;
-        public final AnchorPoint c;
-        public final AnchorPoint pos;
-
-        public Scene(final AnchorPoint a, final AnchorPoint b, final AnchorPoint c, final AnchorPoint pos)
-        {
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.pos = pos;
-        }
+        public AnchorPoint pos;
+        public List<AnchorPoint> beacons = new ArrayList<>();
 
         public String Position()
         {
@@ -51,7 +42,7 @@ public class BeaconsNearby extends TreeSet<BeaconDeviceAdaptation>
         }
     }
 
-    public AnchorPoint getAnchorPointbyName(final String name)
+ /*   public AnchorPoint getAnchorPointbyName(final String name)
     {
         try
         {
@@ -71,53 +62,46 @@ public class BeaconsNearby extends TreeSet<BeaconDeviceAdaptation>
             Log.e(ttt, e.getMessage());
         }
         return null;
-    }
+    }*/
 
     public Scene getBeaconScene()
     {
-/*
         int size = this.size();
-
-        if (size < 3)
-        {
-            return null;
-        }
-*/
-        AnchorPoint p[] = new AnchorPoint[4];
-        int k = 0;
+        Log.e(ttt, "Beacons count is " + size);
+        Scene ret = new Scene();
         for (BeaconDeviceAdaptation ba : this)
         {
-            AnchorPoint t = getAnchorPointbyName(ba.getName());
+            AnchorPoint t = DataFile.getAnchorPoint("mac",ba.getAddress()) ; //getAnchorPointbyName(ba.getName());
             if (t == null)
             {
                 continue;
             }
-            p[k] = t;
-            p[k].r = ba.getDistance();
-            Log.e(ttt, ba.getName() + " : distance: " + p[k].r + "; rssi: " + ba.getRssi());
-            if ((k++) > 1)
-            {
-                break;
-            }
+            t.r = ba.getDistance();
+            ret.beacons.add(t);
+            Log.e(ttt, "distance: " + t.r + " : " + ba.getName());
         }
-        Log.e(ttt, "distance: ========================");
-        Trilateration tri = new Trilateration();
-        PointEx pos = tri.getPosition(p[0], p[1], p[2]);
-        if (pos != null)
+        PointEx pos = null;
+        if (ret.beacons.size() > 2)
         {
-            p[3] = new AnchorPoint(pos, 0);
+            Trilateration tri = new Trilateration();
+            pos = tri.getPosition(ret.beacons.get(0), ret.beacons.get(1), ret.beacons.get(2));
         }
-        else
-        {
-            p[3] = null;
-           // Log.e(ttt, "POS = null");
-        }
-        Scene ret = new Scene(p[0], p[1], p[2], p[3]);
+        ret.pos = (pos != null) ? new AnchorPoint(pos, 0) : null;
         return ret;
     }
 
     public AnchorPoint addToPlotter1(final Plotter plot, int color)
     {
+/*
+SASA-BEA1 : 00:15:83:00:4B:C6
+SASA-BEA2 : 00:15:83:00:42:68
+PETER-BEA1 : 44:EA:D8:27:39:55
+PETER-BEA2 : 44:EA:D8:27:3D:6D
+PETER-BEA4 : 44:EA:D8:27:2C:00
+*/
+
+
+
 
 /*
         public static final AnchorPoint a = new AnchorPoint(new PointF(2, 2), 5.831);

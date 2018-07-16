@@ -1,8 +1,11 @@
 package com.afrig.utilities;
+import android.util.Log;
+
 import com.afrig.interfaces.IRssiFilter;
 
 public class KalmanFilter implements IRssiFilter
 {
+    private final String ttt = "TRA-CE";
     private double processNoise;//Process noise
     private double measurementNoise;//Measurement noise
     private double estimatedRSSI;//calculated rssi
@@ -47,7 +50,7 @@ public class KalmanFilter implements IRssiFilter
         kalmanGain = priorErrorCovarianceRSSI / (priorErrorCovarianceRSSI + measurementNoise);
         estimatedRSSI = priorRSSI + (kalmanGain * (rssi - priorRSSI));
         errorCovarianceRSSI = (1 - kalmanGain) * priorErrorCovarianceRSSI;
-
+        Log.e(ttt,"estimated RSSI: "+estimatedRSSI );
         return estimatedRSSI;
     }
 }//class KalmanFilter

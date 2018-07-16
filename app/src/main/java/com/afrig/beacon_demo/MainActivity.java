@@ -19,6 +19,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.afrig.utilities.AnchorPoint;
+import com.afrig.utilities.DataFile;
 import com.afrig.utilities.KalmanFilter;
 import com.afrig.utilities.PointEx;
 import com.afrig.plotter.Plotter;
@@ -31,7 +32,7 @@ import java.util.TreeSet;
 public class MainActivity extends Activity
 {
     private final String tag = "BeaconDemoActivity";
-    private final String ttt = "TRACE";
+    private final String ttt = "TRA-CE";
     private BluetoothManager mBTManager;
     private BluetoothAdapter mBTAdapter;
     private Handler mScanHandler = new Handler();
@@ -39,9 +40,10 @@ public class MainActivity extends Activity
     private BluetoothLeScanner mBluetoothLeScanner;
     private final boolean mVersionKey = (Build.VERSION.SDK_INT < 21);
     private TextView m_res;
+    private TextView m_zero;
     //----------------------------------------------------------------
     private Handler mHandler = new Handler();
-    private int SCAN_PERIOD = 1000;
+    private int SCAN_PERIOD = 2000;
     private ScanSettings mScanSettings;
     private List<ScanFilter> filters;
     BeaconPool mBeaconPool = new BeaconPool();
@@ -59,11 +61,11 @@ public class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         m_res = findViewById(R.id.textResult2);
         m_res.setText("");
+        m_zero = findViewById(R.id.textView_null);
         mPlot = findViewById(R.id.plotter_id);
-        mPlot.SetPlotterSize(50, 50, 50);
+        mPlot.SetPlotterSize(20, 20, 50);
         if (mProc)
         {
-            // init BLE
             initBLE();
         }
     }
@@ -82,7 +84,7 @@ public class MainActivity extends Activity
         {
             mBluetoothLeScanner = mBTAdapter.getBluetoothLeScanner();
             mScanSettings = new ScanSettings.Builder()
-                    //.setReportDelay(10)
+                    .setReportDelay(0)
                     //.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
                     .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                     //.setScanMode(ScanSettings.SCAN_MODE_BALANCED)
@@ -99,42 +101,6 @@ public class MainActivity extends Activity
         {
             startBLE();
         }
-        else
-        {
-            test();
-        }
-    }
-
-    private void test()
-    {
-        TreeSet<Integer> set = new TreeSet<>();
-        set.add(8);
-        set.add(2);
-        set.add(0);
-        set.add(6);
-        try
-        {
-            Integer[] arr = new Integer[5];
-            set.toArray(arr);
-            Integer p0 = arr[0];
-            Integer p1 = arr[1];
-            Integer p2 = arr[2];
-            Integer p3 = arr[3];
-        } catch (Exception e)
-        {
-            Log.e("TE-ST", e.getMessage());
-        }
-        //DataFile.test();
-        toPlotter1();
-    }
-
-    void toPlotter1()
-    {
-        mPlot.reset();
-        mPlot.invalidate();
-        AnchorPoint p = mBeaconsNearby.addToPlotter1(mPlot, Color.BLUE);
-        m_res.setText("(" + String.format("%.3f", p.x) + ";" + String.format("%.3f", p.y) + ")");
-        mPlot.invalidate();
     }
 
     private BluetoothAdapter.LeScanCallback leScanCallback20 = new BluetoothAdapter.LeScanCallback()
@@ -174,13 +140,7 @@ public class MainActivity extends Activity
                     {
                         mBeaconsNearby.add(bdp);
                         m_res.setTextColor(Color.BLACK);
-                        Log.e("TRA-CE", name + " : " + device.getAddress());
-/*
-                        int rssi = result.getRssi();
-                        double kal = mKalman.applyFilter(rssi);
-                        Log.e("AD-RESS", name + " : " + device.getAddress());
-                        Log.i("STAT-IC", "name: ;" + name + "; rssi: ;" + rssi + "; kal: ;" + kal);
-*/
+                        Log.e(ttt, "address " + name + " : " + device.getAddress());
                     }
                 }
             }
@@ -205,7 +165,7 @@ public class MainActivity extends Activity
 
     private void StartScan()
     {
-        Log.e("TRA-CE", "StartScan");
+        Log.e(ttt, "StartScan");
         mBeaconsNearby.clear();
         if (mVersionKey)
         {
@@ -221,7 +181,7 @@ public class MainActivity extends Activity
 
     private void StopScan()
     {
-        Log.e("TRA-CE", "StopScan");
+        Log.e(ttt, "StopScan");
         if (mVersionKey)//
         {
             mBTAdapter.stopLeScan(leScanCallback20);
@@ -259,10 +219,19 @@ public class MainActivity extends Activity
         {
             mPlot.reset();
             mPlot.invalidate();
-            m_res.setText(scene.Position());
-            mPlot.addAnchorPoint(scene.a, Color.BLUE);
-            mPlot.addAnchorPoint(scene.b, Color.BLUE);
-            mPlot.addAnchorPoint(scene.c, Color.BLUE);
+            if (null != scene.pos)
+            {
+                m_res.setText(scene.Position());
+                m_zero.setText("");
+            }
+            else
+            {
+                m_zero.setText("null");
+            }
+            for (AnchorPoint p : scene.beacons)
+            {
+                mPlot.addAnchorPoint(p, Color.BLUE);
+            }
             mPlot.addAnchorPoint(scene.pos, Color.RED);
             mPlot.invalidate();
         }

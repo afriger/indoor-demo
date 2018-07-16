@@ -47,6 +47,10 @@ public class Trilateration implements ITrilateration
 
     private List<PointEx> circles_intersection(AnchorPoint a, AnchorPoint b, AnchorPoint c)
     {
+        if (a == null || b == null || c == null)
+        {
+            return null;
+        }
         List<PointEx> ab = circle_circle_intersection(a, b);
         if (ab == null || ab.isEmpty())
         {
