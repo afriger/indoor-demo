@@ -208,7 +208,7 @@ public class PlotterBasic extends View
         }
     }
 
-    public void reset()
+    public void reset(boolean bSavePoints)
     {
         if (mLines != null)
         {
@@ -216,7 +216,7 @@ public class PlotterBasic extends View
         }
         if (null != mPoints)
         {
-            if (mSavePoints)
+            if (bSavePoints)
             {
                 List<PlotterPoint> lp = SaveRedPoint();
                 mPoints.clear();

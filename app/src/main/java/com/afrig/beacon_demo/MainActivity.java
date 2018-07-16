@@ -16,20 +16,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.afrig.utilities.AnchorPoint;
-import com.afrig.utilities.DataFile;
-import com.afrig.utilities.KalmanFilter;
 import com.afrig.utilities.PointEx;
 import com.afrig.plotter.Plotter;
 import com.afrig.plotter.PlotterPoint;
-import com.afrig.utilities.StatisticCalculator;
-import com.afrig.utilities.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeSet;
 
 public class MainActivity extends Activity
 {
@@ -52,7 +49,31 @@ public class MainActivity extends Activity
     BeaconsNearby mBeaconsNearby = new BeaconsNearby();
     private Plotter mPlot;
     private final boolean mProc = true;
+
     //----------------------------------------------------------------
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item)
+    {
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings)
+        {
+            if (null != mPlot)
+            {
+                mPlot.reset(false);
+            }
+            return true;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
 
     //----------------------------------------------------------------
     @Override
@@ -122,8 +143,7 @@ public class MainActivity extends Activity
                     {
                         Log.i(tag + 20, bdp.toString());
                     }*/
-
-                    Log.i(tag , "leScanCallback20: no implementation");
+                    Log.i(tag, "leScanCallback20: no implementation");
                 }
             }
         }
@@ -224,7 +244,7 @@ public class MainActivity extends Activity
     {
         if (scene != null)
         {
-            mPlot.reset();
+            mPlot.reset(true);
             mPlot.invalidate();
             if (null != scene.pos)
             {
@@ -246,7 +266,7 @@ public class MainActivity extends Activity
 
     private void toPlotter1(ArrayList<PointEx> list)
     {
-        mPlot.reset();
+       /* mPlot.reset();
         mPlot.invalidate();
         if (list != null)
         {
@@ -259,7 +279,7 @@ public class MainActivity extends Activity
                 PlotterPoint locPoint = new PlotterPoint(new PointF(p.x, p.y), Color.RED);
                 mPlot.addPoint(locPoint);
             }
-        }
+        }*/
         //
 /*
         PointEx beacon1 = new PointEx(Test.a.x, Test.a.y);
