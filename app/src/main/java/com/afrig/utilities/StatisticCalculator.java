@@ -7,7 +7,8 @@ import java.util.List;
 public class StatisticCalculator
 {
     static final String tag = "Statistic";
-    private static String mPrefix ="Unknown";
+    private static String mPrefix = null;
+    private static final int DATA_COUNT = 50;
     private List<Double> mVariance = new ArrayList<>();
     public static List<Double> mData = new ArrayList<>();
     private double mMean = 0;
@@ -19,19 +20,22 @@ public class StatisticCalculator
 
     public static void Reset(final String prefix)
     {
-        mPrefix = prefix;
+        mPrefix = (null == prefix) ? "" : prefix;
         mData.clear();
     }
 
-    public static int Add(double d)
+    public static int Add(double d, final String name)
     {
         mData.add(d);
-        if (mData.size() > 100)
+        if (mData.size() > DATA_COUNT)
         {
+            mPrefix += (null == name) ? "" : name;
             GetStatistic(mData);
             mData.clear();
         }
-        return mData.size();
+        int dataCount = mData.size();
+        Log.e(tag, "mean data-count: " + dataCount);
+        return dataCount;
     }
 
     public static void GetStatistic(List<Double> data)
@@ -39,8 +43,8 @@ public class StatisticCalculator
         StatisticCalculator sc = new StatisticCalculator();
         double mean = sc.Mean(data);
         double sd = sc.StandardDeviation(data);
-        String msg =mPrefix + ":: mean: " + mean + "; sd: " + sd + ";";
-        Utils.write("Statistic.txt",msg);
+        String msg = mPrefix + ":: mean: " + mean + "; sd: " + sd + ";";
+        Utils.write("Statistic.txt", msg);
         Log.e(tag, msg);
     }
 

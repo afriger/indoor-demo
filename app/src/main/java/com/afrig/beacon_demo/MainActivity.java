@@ -11,7 +11,6 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.graphics.PointF;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,10 +19,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.afrig.graph.DijkstrasAlgorithm;
 import com.afrig.utilities.AnchorPoint;
 import com.afrig.utilities.PointEx;
 import com.afrig.plotter.Plotter;
-import com.afrig.plotter.PlotterPoint;
+import com.afrig.utilities.SaLogger;
+import com.afrig.utilities.StatisticCalculator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,8 @@ public class MainActivity extends Activity
     BeaconPool mBeaconPool = new BeaconPool();
     BeaconsNearby mBeaconsNearby = new BeaconsNearby();
     private Plotter mPlot;
-    private final boolean mProc = true;
+    private final boolean mProc = false;
+    private final boolean mStatistic = false;
 
     //----------------------------------------------------------------
     @Override
@@ -88,6 +90,7 @@ public class MainActivity extends Activity
         m_zero = findViewById(R.id.textView_null);
         mPlot = findViewById(R.id.plotter_id);
         mPlot.SetPlotterSize(20, 20, 50);
+        SaLogger.mSeverity = SaLogger.trace;
         if (mProc)
         {
             initBLE();
@@ -115,7 +118,10 @@ public class MainActivity extends Activity
                     .build();
             filters = new ArrayList<ScanFilter>();
         }
-        //StatisticCalculator.Reset("PETER-BEA4");
+        if (mStatistic)
+        {
+            StatisticCalculator.Reset(null);
+        }
     }
 
     @Override
@@ -126,6 +132,15 @@ public class MainActivity extends Activity
         {
             startBLE();
         }
+        else
+        {
+            Test();
+        }
+    }
+
+    private void Test()
+    {
+        DijkstrasAlgorithm.test();
     }
 
     private BluetoothAdapter.LeScanCallback leScanCallback20 = new BluetoothAdapter.LeScanCallback()
@@ -161,10 +176,13 @@ public class MainActivity extends Activity
                 String name = device.getName();
                 if (name != null)
                 {
-                    //int nstat =  StatisticCalculator.Add(result.getRssi());
                     BeaconDeviceAdaptation bdp = mBeaconPool.get(name, result);
                     if (bdp != null && bdp.isBeacon())
                     {
+                        if (mStatistic)
+                        {
+                            StatisticCalculator.Add(bdp.getDistance(), bdp.getName());
+                        }
                         mBeaconsNearby.add(bdp);
                         m_res.setTextColor(Color.BLACK);
                         Log.e(ttt, "address " + name + " : " + device.getAddress());
