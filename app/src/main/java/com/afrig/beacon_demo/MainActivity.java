@@ -20,8 +20,8 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.afrig.graph.DijkstrasAlgorithm;
-import com.afrig.utilities.AnchorPoint;
-import com.afrig.utilities.PointEx;
+import com.afrig.plotter.AnchorPoint;
+import com.afrig.plotter.PointEx;
 import com.afrig.plotter.Plotter;
 import com.afrig.utilities.SaLogger;
 import com.afrig.utilities.StatisticCalculator;

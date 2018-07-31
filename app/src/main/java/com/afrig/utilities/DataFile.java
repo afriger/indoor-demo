@@ -2,7 +2,8 @@ package com.afrig.utilities;
 import android.os.Environment;
 import android.util.Log;
 
-import org.json.JSONArray;
+import com.afrig.plotter.AnchorPoint;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

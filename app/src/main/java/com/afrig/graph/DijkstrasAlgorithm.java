@@ -5,7 +5,7 @@ package com.afrig.graph;
 import android.graphics.Color;
 
 import com.afrig.plotter.Plotter;
-import com.afrig.utilities.AnchorPoint;
+import com.afrig.plotter.AnchorPoint;
 import com.afrig.utilities.SaLogger;
 
 import java.util.ArrayList;

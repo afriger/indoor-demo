@@ -2,16 +2,12 @@ package com.afrig.beacon_demo;
 import android.graphics.Color;
 import android.util.Log;
 
-import com.afrig.utilities.AnchorPoint;
+import com.afrig.plotter.AnchorPoint;
 import com.afrig.utilities.DataFile;
-import com.afrig.utilities.PointEx;
+import com.afrig.plotter.PointEx;
 import com.afrig.utilities.Trilateration;
 import com.afrig.plotter.Plotter;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

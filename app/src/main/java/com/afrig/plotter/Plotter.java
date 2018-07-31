@@ -1,20 +1,6 @@
 package com.afrig.plotter;
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.PointF;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.View;
-
-import com.afrig.utilities.AnchorPoint;
-
-import java.util.ArrayList;
-import java.util.List;
 
 //import android.support.annotation.Nullable;
 public class Plotter extends PlotterBasic
@@ -43,8 +29,8 @@ public class Plotter extends PlotterBasic
         {
             return;
         }
-        PlotterPoint bp = new PlotterPoint(p.getPoint(), color);
-        addPoint(bp);
+        p.setPointColor(color);
+        addPoint(p);
         if (p.r > 0)
         {
             AnchorPoint c = new AnchorPoint(p.getPoint(), p.r);

@@ -2,6 +2,8 @@ package com.afrig.utilities;
 import android.graphics.PointF;
 
 import com.afrig.interfaces.ITrilateration;
+import com.afrig.plotter.AnchorPoint;
+import com.afrig.plotter.PointEx;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.afrig.interfaces;
-import com.afrig.utilities.AnchorPoint;
-import com.afrig.utilities.PointEx;
+import com.afrig.plotter.AnchorPoint;
+import com.afrig.plotter.PointEx;
 
 import java.util.List;
 

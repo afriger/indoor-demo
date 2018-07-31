@@ -11,8 +11,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.afrig.utilities.AnchorPoint;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +31,9 @@ public class PlotterBasic extends View
     private int mAxisColor = DEFAULT_AXIS_COLOR; // axis color
     private int nAxisWidth = DEFAULT_AXIS_WIDTH;
     private int mCoordinateTextSize = DEFAULT_COORDINATE_TEXT_SIZE; // the text size of text beside axis
+    //change these for other size arrowheads
+    private final double RADIUS = 32;
+    private final double ANGLE = 20;
     private int xMax = DEFAULT_MAX_XY;
     private int yMax = DEFAULT_MAX_XY;
     private float mUnitLength = DEFAULT_UNIT_LENGTH;
@@ -49,7 +50,7 @@ public class PlotterBasic extends View
     private Paint mCirclePaint;
     private Paint mgAxisPaint;
     private Paint mPointer;
-    private List<PlotterPoint> mPoints = new ArrayList<>();
+    private List<AnchorPoint> mPoints = new ArrayList<>();
     private List<AnchorPoint> mCircles = new ArrayList<>();
     private List<Vector> mLines = new ArrayList<>();
     private final GestureDetector mGestureDetector;
@@ -116,7 +117,7 @@ public class PlotterBasic extends View
         mAxisPaint.setStyle(Paint.Style.STROKE);
         mAxisPaint.setTextSize(mCoordinateTextSize);
         mLinePaint = new Paint();
-        mLinePaint.setStrokeWidth(nAxisWidth);
+        mLinePaint.setStrokeWidth(nAxisWidth * 2);
         mLinePaint.setColor(mLineColor);
         mLinePaint.setAntiAlias(true);
         mLinePaint.setStyle(Paint.Style.STROKE);
@@ -131,7 +132,7 @@ public class PlotterBasic extends View
         mCirclePaint.setStyle(Paint.Style.STROKE);
         mPointPaint = new Paint();
         mPointPaint.setColor(DEFAULT_PLOTER_POINT_COLOR);
-        mPointPaint.setStyle(Paint.Style.FILL);
+        mPointPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         mPointPaint.setAntiAlias(true);
         mPointer = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPointer.setColor(Color.BLACK);
@@ -166,7 +167,7 @@ public class PlotterBasic extends View
         // draw points
         for (int i = 0; i < mPoints.size(); ++i)
         {
-            PlotterPoint point = mPoints.get(i);
+            AnchorPoint point = mPoints.get(i);
             drawPoint(point, canvas);
         }
         //draw lines
@@ -186,7 +187,7 @@ public class PlotterBasic extends View
         Log.e(ttt, "w: " + mWidth + "; h: " + mHeight);
     }
 
-    public void addPoint(PlotterPoint point)
+    public void addPoint(AnchorPoint point)
     {
         if (mPoints != null)
         {
@@ -226,7 +227,7 @@ public class PlotterBasic extends View
         {
             if (bSavePoints)
             {
-                List<PlotterPoint> lp = SaveRedPoint();
+                List<AnchorPoint> lp = SaveRedPoint();
                 mPoints.clear();
                 mPoints.addAll(lp);
             }
@@ -242,10 +243,10 @@ public class PlotterBasic extends View
         invalidate();
     }
 
-    private List<PlotterPoint> SaveRedPoint()
+    private List<AnchorPoint> SaveRedPoint()
     {
-        List<PlotterPoint> lp = new ArrayList<>();
-        for (PlotterPoint pp : mPoints)
+        List<AnchorPoint> lp = new ArrayList<>();
+        for (AnchorPoint pp : mPoints)
         {
             if (pp.getPointColor() == Color.RED)
             {
@@ -272,7 +273,7 @@ public class PlotterBasic extends View
         return (float) (mOriginPoint.x + x * mUnitLength);
     }
 
-    private void drawPoint(PlotterPoint point, Canvas canvas)
+    private void drawPoint(AnchorPoint point, Canvas canvas)
     {
         PointF pointRaw = convertLogicalPoint2Raw(point.getPoint(), mUnitLength);
         if (point.getPointColor() != null)
@@ -295,9 +296,9 @@ public class PlotterBasic extends View
     private void drawLine(PointF a, PointF b, Canvas canvas)
     {
         PointF start = convertLogicalPoint2Raw(a, mUnitLength);
-        PointF finish = convertLogicalPoint2Raw(b, mUnitLength);
-        canvas.drawLine(start.x, start.y, finish.x, finish.y, mLinePaint);
-        canvas.drawCircle(finish.x, finish.y, 4, mPointer);
+        PointF end = convertLogicalPoint2Raw(b, mUnitLength);
+        canvas.drawLine(start.x, start.y, end.x, end.y, mLinePaint);
+        arrowHead(mLinePaint, canvas, start, end);
     }
 
     private void drawAxis(Canvas canvas)
@@ -315,24 +316,23 @@ public class PlotterBasic extends View
             canvas.drawLine(mLeftPoint.x, mLeftPoint.y + i * mUnitLength, mRightPoint.x, mRightPoint.y + i * mUnitLength, mgAxisPaint);
             canvas.drawLine(mLeftPoint.x, mLeftPoint.y - i * mUnitLength, mRightPoint.x, mRightPoint.y - i * mUnitLength, mgAxisPaint);
         }
+    }
 
-/*
-        // draw axis arrows
-        // y axis arrow
+    private void arrowHead(Paint paint, Canvas canvas, PointF start, PointF end)
+    {
+        double anglerad, lineangle;
+
+        //some angle calculations
+        anglerad = (Math.PI * ANGLE / 180.0f) / 2.0;
+        lineangle = (Math.atan2(end.y - start.y, end.x - start.x));
+        //tha triangle
         Path path = new Path();
-        path.moveTo(topPoint.x, topPoint.y);
-        path.lineTo(topPoint.x - 10, topPoint.y + 20);
-        path.lineTo(topPoint.x + 10, topPoint.y + 20);
+        path.setFillType(Path.FillType.EVEN_ODD);
+        path.moveTo(end.x, end.y);
+        path.lineTo((float) (end.x - RADIUS * Math.cos(lineangle - anglerad)), (float) (end.y - RADIUS * Math.sin(lineangle - anglerad)));
+        path.lineTo((float) (end.x - RADIUS * Math.cos(lineangle + anglerad)), (float) (end.y - RADIUS * Math.sin(lineangle + anglerad)));
         path.close();
-        axisPaint.setStyle(Paint.Style.FILL);
-        canvas.drawPath(path, axisPaint);
-        // x axis arrow
-        path.moveTo(rightPoint.x, rightPoint.y);
-        path.lineTo(rightPoint.x - 20, rightPoint.y - 10);
-        path.lineTo(rightPoint.x - 20, rightPoint.y + 10);
-        path.close();
-        canvas.drawPath(path, axisPaint);
-*/
+        canvas.drawPath(path, paint);
     }
 
     private class MyGestureListener extends GestureDetector.SimpleOnGestureListener
