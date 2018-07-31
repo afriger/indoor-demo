@@ -140,7 +140,8 @@ public class MainActivity extends Activity
 
     private void Test()
     {
-        DijkstrasAlgorithm.test();
+        //DijkstrasAlgorithm.test();
+        DijkstrasAlgorithm.test(mPlot);
     }
 
     private BluetoothAdapter.LeScanCallback leScanCallback20 = new BluetoothAdapter.LeScanCallback()

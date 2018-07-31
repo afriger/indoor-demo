@@ -48,6 +48,7 @@ public class PlotterBasic extends View
     private Paint mLinePaint;
     private Paint mCirclePaint;
     private Paint mgAxisPaint;
+    private Paint mPointer;
     private List<PlotterPoint> mPoints = new ArrayList<>();
     private List<AnchorPoint> mCircles = new ArrayList<>();
     private List<Vector> mLines = new ArrayList<>();
@@ -132,6 +133,8 @@ public class PlotterBasic extends View
         mPointPaint.setColor(DEFAULT_PLOTER_POINT_COLOR);
         mPointPaint.setStyle(Paint.Style.FILL);
         mPointPaint.setAntiAlias(true);
+        mPointer = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPointer.setColor(Color.BLACK);
     }
 
     @Override
@@ -197,6 +200,11 @@ public class PlotterBasic extends View
         {
             mCircles.add(c);
         }
+    }
+
+    public void addLine(AnchorPoint a, AnchorPoint b)
+    {
+        addLine(a.getPoint(), b.getPoint());
     }
 
     public void addLine(PointF a, PointF b)
@@ -289,6 +297,7 @@ public class PlotterBasic extends View
         PointF start = convertLogicalPoint2Raw(a, mUnitLength);
         PointF finish = convertLogicalPoint2Raw(b, mUnitLength);
         canvas.drawLine(start.x, start.y, finish.x, finish.y, mLinePaint);
+        canvas.drawCircle(finish.x, finish.y, 4, mPointer);
     }
 
     private void drawAxis(Canvas canvas)

@@ -2,6 +2,10 @@ package com.afrig.graph;
 // A Java program for Dijkstra's
 // single source shortest path
 // algorithm.
+import android.graphics.Color;
+
+import com.afrig.plotter.Plotter;
+import com.afrig.utilities.AnchorPoint;
 import com.afrig.utilities.SaLogger;
 
 import java.util.ArrayList;
@@ -15,6 +19,7 @@ public class DijkstrasAlgorithm
     double[][] mAdjacencyMatrix = null;
     String tmp;
     SaLogger log = SaLogger.Log;
+    public List<AnchorPoint> beacons = new ArrayList<>();
     public static class bea
     {
         public int x, y, alpha;
@@ -26,6 +31,11 @@ public class DijkstrasAlgorithm
             this.y = y;
             this.name = name;
             alpha = 1;
+        }
+
+        public AnchorPoint position()
+        {
+            return new AnchorPoint(this.x, this.y, 0);
         }
     }
 
@@ -40,6 +50,7 @@ public class DijkstrasAlgorithm
         for (int i = 0; i < size; ++i)
         {
             bea b1 = beas.get(i);
+            beacons.add(b1.position());
             for (int j = 0; j < size; ++j)
             {
                 bea b2 = beas.get(j);
@@ -178,11 +189,11 @@ public class DijkstrasAlgorithm
         {
             if (vertexIndex != startVertex)
             {
-                String p="", res;
-                tmp="";
-                res =("" + startVertex + " -> " + vertexIndex + "; dist: " + mShortestDistances.get(vertexIndex));
+                String p = "", res;
+                tmp = "";
+                res = ("" + startVertex + " -> " + vertexIndex + "; dist: " + mShortestDistances.get(vertexIndex));
                 printPath(vertexIndex, parents);
-                log.t(res+"; path: "+tmp);
+                log.t(res + "; path: " + tmp);
             }
         }
     }
@@ -200,6 +211,7 @@ public class DijkstrasAlgorithm
         printPath(parents[currentVertex], parents);
         tmp += (currentVertex + " ");
     }
+
     // Driver Code
     public static void test()
     {
@@ -216,6 +228,39 @@ public class DijkstrasAlgorithm
         };
         DijkstrasAlgorithm da = new DijkstrasAlgorithm();
         da.dijkstra(adjacencyMatrix, 4, 6);
+    }
+
+    public static void test(final Plotter plot)
+    {
+        ArrayList<DijkstrasAlgorithm.bea> lst = new ArrayList<>();
+        lst.add(new DijkstrasAlgorithm.bea(2, 2, "s0"));
+        lst.add(new DijkstrasAlgorithm.bea(0, 0, "s1"));
+        lst.add(new DijkstrasAlgorithm.bea(0, 4, "s2"));
+        lst.add(new DijkstrasAlgorithm.bea(5, 0, "s3"));
+        lst.add(new DijkstrasAlgorithm.bea(5, 4, "s4"));
+        lst.add(new DijkstrasAlgorithm.bea(2, 6, "s5"));
+        DijkstrasAlgorithm da = new DijkstrasAlgorithm();
+        da.Init(lst);
+        da.dijkstra(0, 5);
+        //to plotter
+        plot.reset(true);
+        plot.invalidate();
+        for (AnchorPoint p : da.beacons)
+        {
+            plot.addAnchorPoint(p, Color.BLUE);
+        }
+        for (int k = 0; k < da.mPath.size() - 1; ++k)
+        {
+
+            AnchorPoint start = da.beacons.get(da.mPath.get(k));
+            AnchorPoint end = da.beacons.get(da.mPath.get(k+1));
+            if (0 == k)
+            {
+                plot.addAnchorPoint(start, Color.RED);
+            }
+            plot.addLine(start, end);
+        }
+        plot.invalidate();
     }
 }
 // This code is contributed by Harikrishnan Rajan
